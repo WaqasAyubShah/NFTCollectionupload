@@ -10,25 +10,52 @@ contract NFT is ERC721Enumerable, Ownable {
 
   string public baseURI;
   string public baseExtension = ".json";
-  uint256 public cost = 0.05 ether;
-  uint256 public maxSupply = 10000;
-  uint256 public maxMintAmount = 20;
+  string public imageURI;
+  string public baseImageExtension= ".png";
+  uint256 public cost = 0.01 ether;
+  uint256 public maxSupply = 50;
+  uint256 public maxMintAmount = 10;
   bool public paused = false;
   mapping(address => bool) public whitelisted;
 
   constructor(
     string memory _name,
     string memory _symbol,
-    string memory _initBaseURI
+    string memory _initBaseURI,
+    string memory _initImageURI
   ) ERC721(_name, _symbol) {
+    setBaseImageURI(_initImageURI);
     setBaseURI(_initBaseURI);
     mint(msg.sender, 20);
+  }
+
+  function _baseimageURI() internal view virtual returns (string memory) {
+    return imageURI;
+  }
+
+  function timageURI(uint256 tokenId)
+    public
+    view
+    virtual
+    returns (string memory)
+  {
+    require(
+      _exists(tokenId),
+      "ERC721Metadata: URI query for nonexistent token image"
+    );
+
+    string memory currentBaseImageURI = _baseimageURI();
+    return bytes(currentBaseImageURI).length > 0
+        ? string(abi.encodePacked(currentBaseImageURI, tokenId.toString(), baseImageExtension))
+        : "";
   }
 
   // internal
   function _baseURI() internal view virtual override returns (string memory) {
     return baseURI;
   }
+
+
 
   // public
   function mint(address _to, uint256 _mintAmount) public payable {
@@ -62,6 +89,16 @@ contract NFT is ERC721Enumerable, Ownable {
     return tokenIds;
   }
 
+//   function tokenImageURI(address _owner) public view returns(string memory){
+//        uint256 ownerTokenCount = balanceOf(_owner);
+//     uint256[] memory tokenIds = new uint256[](ownerTokenCount);
+//     for (uint256 i; i < ownerTokenCount; i++) {
+//       tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
+//     }
+//       return baseImageURI;
+//   }
+
+
   function tokenURI(uint256 tokenId)
     public
     view
@@ -91,6 +128,10 @@ contract NFT is ERC721Enumerable, Ownable {
 
   function setBaseURI(string memory _newBaseURI) public onlyOwner {
     baseURI = _newBaseURI;
+  }
+
+  function setBaseImageURI(string memory _newBaseURI) public onlyOwner {
+    imageURI = _newBaseURI;
   }
 
   function setBaseExtension(string memory _newBaseExtension) public onlyOwner {
